@@ -1,0 +1,5 @@
+pydantic-ai-slim[openai,mcp]>=2.55
+python-dotenv
+mcp>=1.20,<2
+fastapi>=0.115
+uvicorn[standard]

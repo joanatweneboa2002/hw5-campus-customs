@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+
+# Node
+node_modules/
+frontend/dist/
+
+# macOS
+.DS_Store
+
+# Local-only Claude Code settings
+.claude/settings.local.json
+
+# Submission zip (built from the repo)
+hw5.zip
