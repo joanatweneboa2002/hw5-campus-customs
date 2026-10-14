@@ -2,57 +2,77 @@
 
 The React + Vite + TypeScript dashboard in `frontend/` lets the shop owner run the agent team on a ticket, watch the agents work, sign off on payments, and see the checking balance change. It calls the FastAPI backend at `localhost:8000`, which allows requests from `localhost:5173`.
 
-## Theme: plain
+## Theme: "Process" (from a Pinterest reference)
 
-The page is deliberately plain:
-- **Surfaces:** a near-white page (`#fafafa`), white cards, and thin light-gray borders (`#e5e7eb`).
-- **Text:** dark gray (`#1f2937`), with medium gray (`#6b7280`) for secondary text.
-- **Font:** the system sans-serif everywhere.
-- **Buttons:** solid dark slate (`#374151`) with white text.
-- **No effects:** no gradients, glows, tinted backgrounds, or flashing.
-- **Red** (`#b91c1c`) is used only for warnings: an error, a cash drop, a balance getting low.
+The look is based on the Alecta "Process" template the user picked on Pinterest: a full-width hero image with a dark tint and a huge white title, then four steps shown as giant numbers (01–04) filled with photos and illustrations, each next to a bold heading with a short gold underline, and a navy footer. Here each **agent step** is one of those process steps.
 
-**History:** two earlier versions were tried and dropped because they hurt the user's eyes. The first was earthy and rusty with a dark header. The second used only light pinks.
+| Role | Color |
+|---|---|
+| Page | White `#ffffff`, with warm off-white `#f7f6f2` for handoff boxes |
+| Hero, payment cards and footer | Deep navy `#0e0f24` |
+| Heading underline, selected ticket bar | Gold `#c9a227` |
+| Accents (in the illustrations, nav badge, Approve button, back-to-top) | Sunny yellow `#f2c94c`, coral `#ec5b5b`, teal `#3aa597` |
+| Text | Near-black `#111114`, gray `#6f6f78` for secondary text |
+| "Done" | Teal `#1f8274` |
+| Warnings only | Dark red `#b42318` |
 
-**Why:** a page full of AI text is easier to read for a long time on white with dark gray text and nothing competing for attention. Color appears only where it carries meaning: the agent icons, and red for warnings. None of the default Vite page is left, and the favicon is a plain gray mark.
+- **Fonts:** Montserrat (700–900) for headings and the giant numbers, Raleway for body text with even, full-height numbers.
+- **Illustrations instead of photos:** the giant numbers and the hero are filled with hand-drawn SVG scenes (`frontend/src/art.ts`), so there are no image files and it works offline. The scenes avoid pure white so every digit keeps its shape on the white page.
+- **Spacing:** wide margins, 56px between steps, thin light-gray dividers, a 48px gold dash under every heading.
+- **Buttons:** rounded pills. Navy turns coral on hover. Approve & pay is coral on the navy payment card.
+
+**History:** four earlier versions were dropped. Earthy and rusty, then light pinks (both hurt the user's eyes), then plain white and gray (easy to read but flat), then a first pass at this theme that only borrowed the colors. This version takes the template's structure too: the hero, the wide alternating steps, and picture-filled numbers. The reading areas stay white with dark text, so long AI text is still easy on the eyes.
 
 ## Layout
 
-The page has three columns under a header. They follow the order the owner works in: **pick a ticket → watch the agents → decide.**
-
 | Area | What's there | Why |
 |---|---|---|
-| **Header** | Shop name, the **checking balance** card, and a Reset shop button. | Cash is the one number the owner always cares about, so it never scrolls away. |
-| **Left: Tickets** | One card per ticket (id, subject, type, requester, state) with a **Run agents** button. Below that, "The team" legend. | Choosing work comes first, so it's on the left. The legend teaches the agent colors before the feed uses them. |
-| **Center: Live feed** | The selected ticket's title, then a timeline of agent messages, newest at the bottom like a chat. | The run is the main story, so it gets the widest column. |
-| **Right: Sign-off and summary** | "Needs your sign-off": pending payments with **Approve & pay** and **Reject**. Below that, "Who did what": one short card per agent. | The decisions only a human can make sit next to the feed, so the owner reads why and then approves without hunting. |
+| **Nav** | "Campus Customs" with a yellow dot (like the Alecta logo), links to Tickets, Process, Sign-off (with a coral count of waiting payments) and Team, and Reset shop. | Jump straight to any part of a long page. The count tells the owner something needs them. |
+| **Hero** | A top-down illustrated desk (laptop, plant, coffee, notebook, folded tees) under a navy tint. Over it: **Let's run the shop** in huge white type, a one-line explanation, three stats (tickets done, payments waiting, agents on shift) and a frosted **checking balance** card. | The first screen answers the owner's two questions: how much cash is there, and is anything waiting for me? |
+| **Pick a ticket** | Three big cards side by side: ticket type, state, the ticket number painted with an illustration, subject and requester, and **Run agents**. The selected card lifts and gets a gold bar along the bottom. | Choosing work comes first. Big painted numbers make the three tickets instantly different. |
+| **The process (wide)** | The selected ticket's title, then one row per agent step: a giant illustrated **01, 02, 03…** on one side and the agent's name, message, tools and handoff on the other. Sides alternate like the template. | The run is the main story, so it gets most of the width, and the giant numbers make the order of the handoffs impossible to miss. |
+| **Sidebar (sticky)** | "Waiting on you": navy payment cards with **Approve & pay** and **Reject**. Below that, "Who did what": one numbered line per agent. | Stays in view while you scroll the steps, so you can read why and then approve. |
+| **Footer (navy)** | Shop line ("nothing moves until a person approves it") and **The team**: all five agents in columns. A round coral ↑ button jumps back to the top. | Mirrors the template's footer. |
 
-Below 1100px wide, the columns stack in the same order.
+Below 1100px wide, everything stacks in the same order.
 
 ## How agents look different
 
-Every agent has its own **color** and a **line icon** in a rounded-square badge. The pairing is the same everywhere: in the feed, in the "hands to" line, in the summary, on payment requests, and in the legend.
+Every agent has its own **text color**, an **illustrated scene** painted inside its giant step numbers, and a **line icon** in a round tinted badge.
 
-| Agent | Color | Icon | Why this icon |
+| Agent | Text color | Scene inside its numbers | Icon |
 |---|---|---|---|
-| Boss | Slate gray `#374151` | Compass | Sets the direction for each ticket. |
-| Inventory | Amber `#b45309` | Crate | Counts what's on the shelves. |
-| Accounting | Green `#15803d` | Coin stack | Watches the money. |
-| Facilities | Blue `#1d4ed8` | Storefront | Looks after the shop space and lease. |
-| Customer Service | Purple `#7e22ce` | Speech bubble | Talks to customers. |
+| Boss | Navy `#14163a` | Navy desk with a gold compass, a dashed route and a note card | Compass |
+| Inventory | Mustard `#a86f12` | Yellow stationery with folded coral, teal and navy tees and a box, like the template's "03" | Crate |
+| Accounting | Teal `#1f8274` | Teal with stacked gold coins, a receipt and a dollar sign | Coin stack |
+| Facilities | Slate `#565663` | Blueprint floor plan with walls, doors, windows and a plant, like the template's sketch "02" | Storefront |
+| Customer Service | Coral `#cf3f3f` | Coral with navy and yellow speech bubbles and hearts, like the doodle "04" | Speech bubble |
 
-Each badge is a light-gray tile with the icon drawn in the agent's color. The color appears in only three small places: the icon, the agent's name, and a thin left edge on its messages.
+The text colors are dark enough to read on white. The bright colors only appear inside the illustrations.
 
-- **Feed bubbles** are white with a thin gray border. Only the 3px left edge and the agent's name take its color.
-- **Handoffs** show "hands to" plus the next agent's small badge and the exact handoff message. You can follow the baton from bubble to bubble.
-- **Tools** each agent called appear as small monospace tags under its message, for example `check_order_fulfillment` and `request_payment_approval`.
-- **While a run is going,** a dashed "Inventory is working…" bubble shows who has the ticket right now, with three softly blinking dots.
+- **Handoffs:** a warm off-white box says "PASSES TO" plus the next agent's badge, name and exact handoff message.
+- **Tools:** each tool the agent called is a small outlined pill, for example `check_order_fulfillment`.
+- **While a run is going:** the next step number appears in the next agent's scene and pulses, with "Inventory is working" and three blinking gold dots.
 
-**Why:** with five agents passing one ticket around, you need to tell them apart at a glance. Five clearly different colors, used in small amounts, do that without making the page loud. The icon backs up the color, which also helps color-blind users.
+Ticket numbers use the scene of the agent that owns that kind of work: customer orders get Inventory's (101), rent notices get Facilities' blueprint (102), and price overrides get Accounting's coins (103).
+
+## Story, route map and motion
+
+- **Three steps.** The page reads in the order the owner works, each with a gold outlined number like the template's steps: **01 Pick a ticket**, **02 Watch the team work**, **03 Waiting on you**.
+- **Who touched it.** Above the steps, a line of agent badges shows the whole handoff path for the run on screen (for example Boss → Inventory → Accounting → Customer Service → Boss on 103), with step count and tokens. Clicking a badge jumps to that step. While a run is going, the next agent's badge pings at the end of the line. It shows the latest run for the selected ticket, the same run as the steps below.
+- **Richer steps.** Each step has a gold eyebrow ("STEP 02 · STOCK & SIZES"), and each handoff is an arrow in the next agent's color pointing at its badge and name.
+- **Motion.**
+  - The hero art slowly zooms and drifts (a 28-second "Ken Burns" loop), and the title, text, stats and cash card rise in one after another on load.
+  - Ticket cards fade up in sequence. Each step's giant number slides in from its own side while the text rises, as it scrolls into view.
+  - Hovering a giant number tilts and enlarges it slightly. Hovering a ticket card lifts it.
+  - **Reduced motion:** if the computer is set to reduce motion, all animation is turned off and everything is simply shown.
+- **Footer wordmark.** A huge outlined "Campus Customs" in faint gold runs along the bottom of the navy footer.
+
+**Why:** the template feels alive because things move and the story is numbered. The three steps tell a first-time user what to do in order, and the route map gives the whole run at a glance before reading the details.
 
 ## Live messages
 
-Pressing **Run agents** calls `POST /tickets/{id}/run`. While that request is open, the page polls `GET /events?ticket_id=` every 1.2 seconds and shows only steps from the current run. Every agent turn is appended to the audit trail as it finishes, so each message appears seconds after the agent says it. In testing, the first message showed up 6 seconds into a 43-second run.
+Pressing **Run agents** calls `POST /tickets/{id}/run`. While that request is open, the page polls `GET /events?ticket_id=` every 1.2 seconds and shows only steps from the current run. Every agent turn is appended to the audit trail as it finishes, so each step appears seconds after the agent says it.
 
 Afterwards, the feed shows that ticket's most recent run on record, labeled with its run id.
 
@@ -60,27 +80,27 @@ Afterwards, the feed shows that ticket's most recent run on record, labeled with
 
 When the run finishes with the ticket closed:
 
-1. **Ticket card:** the status changes to a **✓ Resolved** pill. The card turns light gray, the title goes gray, and the Run button disappears, since a closed ticket can't be rerun without a reset.
-2. **Feed header:** a **✓ Resolved** pill appears next to the ticket title.
-3. **Banner:** a light-gray banner shows the result, for example "Resolved · 6 agent steps · 38,239 tokens".
-4. **Last bubble:** Boss's final message ends with a **✓ Ticket closed** tag.
+1. **Ticket card:** the state changes to a teal **✓ Resolved** pill and the Run button disappears, since a closed ticket can't be rerun without a reset.
+2. **Feed header:** a teal **✓ Resolved** pill appears next to the ticket title.
+3. **Banner:** an off-white banner with a gold left edge shows the result, for example "Resolved · 5 agent steps · 34,335 tokens".
+4. **Last step:** Boss's final message ends with a teal **✓ Ticket closed** tag.
 
-If a run stops for a person (`needs_human`) or hits a token limit, the banner and tag turn red and say why in words.
+If a run stops for a person (`needs_human`) or hits a token limit, the banner and tag turn dark red and say why in words.
 
-**Why:** the ✓, the gray-out, and the missing Run button all say "done" quietly. Red is kept for the one case that needs attention.
+**Why:** teal means "done" everywhere on the page, and dark red is kept for the one case that needs attention.
 
 ## How cash shows up
 
-- **Balance card** in the header: the checking balance in large serif type.
-  - A red **▼ $840.00 this session** line shows the total drop since the page opened.
-  - A **sparkline** traces every balance this session, scaled to its own range so even one payment shows a clear slope.
-- **Pending line:** while payments wait for sign-off, a gray line under the balance reads "$840.00 awaiting approval → $2,560.00". The owner sees where cash *will* land before agreeing to anything.
-- **Payment cards** in "Needs your sign-off" show:
-  - the type and reference (Rent / Vendor invoice #501), the amount, payee, and account
-  - **Leaves $X**, which turns red under $500 as a warning
+- **Balance card** in the hero: a frosted-glass card with the checking balance in large white Montserrat.
+  - A light-red **▼ $840.00 this session** line shows the total drop since the page opened.
+  - A **gold sparkline** with a coral end dot traces every balance this session, scaled to its own range so even one payment shows a clear slope.
+- **Pending line:** while payments wait for sign-off, a line under the balance reads "$2,400.00 waiting on you → $160.00". The owner sees where cash *will* land before agreeing to anything.
+- **Payment cards** in "Waiting on you" are navy with a soft gold glow and show:
+  - the type and reference (Rent / Vendor invoice #501), the amount in large type, the payee, and the account
+  - **Leaves $X**, which turns dark red under $500 as a warning
   - the badge of the agent that asked, with its reason
-  The cards for the selected ticket get a dark outline.
-- **Approve & pay** is a solid dark button and stays disabled until the owner types a name in "Approving as". That name is saved to `payments.approved_by`. **Reject** is a quiet outline button.
+  The card for the selected ticket gets a gold outline.
+- **Approve & pay** is a solid coral pill and stays disabled until the owner types a name in "Approving as". That name is saved to `payments.approved_by`. **Reject** is a quiet outline pill.
 
 **Why:**
 - Agents can only *prepare* payments. `POST /approvals/{id}/approve` is the only thing that moves cash, and the layout makes that clear.

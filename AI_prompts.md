@@ -10,13 +10,9 @@ A record of the prompts I used with Claude Code for each Homework 5 problem.
 
 > Ok we are ready to roll! P1. make me an AI_prompts.md in the project root with a section for each of the 11 HW5 problems. each section needs the problem number and title, a spot for my prompt, a spot for a follow up, and a line for what was missing the first time. leave them blank, I'll fill them in as I go
 
-**Follow-up prompt:**
-
-> None.
-
 **What the first prompt was missing:**
 
-The problem titles. I didn't give Claude the HW5 assignment, so it couldn't fill in the section headers.
+The problem titles. I didn't give Claude the assignment.
 
 ---
 
@@ -32,7 +28,7 @@ The problem titles. I didn't give Claude the HW5 assignment, so it couldn't fill
 
 **What the first prompt was missing:**
 
-The problem number and title, so the prompt log could be labeled. The database work itself was done in one pass.
+The problem number and title for the log.
 
 ---
 
@@ -54,9 +50,7 @@ The problem number and title, so the prompt log could be labeled. The database w
 
 **What the first prompt was missing:**
 
-A package version. The newest `mcp` release renamed FastMCP, so Claude had to pin `mcp<2` to keep the API I asked for.
-
-For the screenshot page: one screenshot per ticket, saved as files in the folder. My first 3 screenshots all showed ticket 101, and pasting new ones into the chat didn't save them as files the page could link to.
+A package version (`mcp` 2.x renamed FastMCP, so it pinned `mcp<2`). For the screenshot page: one saved file per ticket. My first 3 all showed ticket 101.
 
 ---
 
@@ -78,7 +72,7 @@ For the screenshot page: one screenshot per ticket, saved as files in the folder
 
 **What the first prompt was missing:**
 
-That Claude Code was opened on the parent `AI Found` folder, not `HW 5`, so it never read the HW5 `.mcp.json`. It also didn't mention that the window had to be reloaded before the tools would load. And it didn't ask for the tests to be saved and checked against the db.
+That Claude Code was open on the parent folder and needed a reload to load the server, and that the tests should be saved and checked against the db.
 
 ---
 
@@ -88,13 +82,9 @@ That Claude Code was opened on the parent `AI Found` folder, not `HW 5`, so it n
 
 > P5: Agent team. uild 5 PydanticAI agents: Boss, Inventory, Accounting, Facilities, and Customer Service. all use gpt-6-luna through Portkey with my OPEN AI KEY from .env. Boss reads the ticket and delegates, and any agent can hand off to any other. shop facts only come from my MCP server, no separate tools layer. if agents need more tools to close the tickets, add them to the MCP server. one prompt file per agent in backend/prompts/, data types in backend/models.py. every agent loop step appends to output/audit_trail.json and never wipes it. update harness.md with every agent, every tool and its table, a safety section (guardrails for real customers and money, plus token limits), and update the MCP README
 
-**Follow-up prompt:**
-
-> None.
-
 **What the first prompt was missing:**
 
-The correct model name. I wrote `gpt-6-luna`, but the project model is `gpt-5.6-luna`.
+A check that the agents really went through Portkey. They called OpenAI directly until the Problem 11 fix.
 
 ---
 
@@ -104,13 +94,9 @@ The correct model name. I wrote `gpt-6-luna`, but the project model is `gpt-5.6-
 
 > P6. Plan the tickets make output/desk_tickets.html, one page with tabs for Ticket 101, 102, 103, plus Cash and Reflection tabs that say coming later. each ticket tab gets an Expected section and an empty Actual section. here's my plan: 101: Boss calls [agent] first because [why], then [handoffs], using [tools]. 102: ... 103: ...
 
-**Follow-up prompt:**
-
-> None.
-
 **What the first prompt was missing:**
 
-My actual plan. I pasted the template without filling in `[agent]`, `[why]`, `[handoffs]` and `[tools]` for each ticket, so the Expected sections didn't have my reasoning.
+My actual plan. I left `[agent]`, `[why]`, `[handoffs]` and `[tools]` blank.
 
 ---
 
@@ -120,13 +106,9 @@ My actual plan. I pasted the template without filling in `[agent]`, `[why]`, `[h
 
 > P7. Backend routes Build a FastAPI backend in backend/main.py for my React board. routes: list the 3 tickets and whether each is open or resolved, run the agent team on a ticket by id, return recent agent events (what each agent said and which tools it used), approve a payment or purchase after a human clicks approve, get the checking balance from cash_accounts, and reset the db. agents can only prepare payments, the approve route is the only thing that touches cash. it should run with uvicorn main:app --reload --port 8000 from backend/. add each route to harness.md on one line with its URL and what it does
 
-**Follow-up prompt:**
-
-> None.
-
 **What the first prompt was missing:**
 
-That another app was already running on port 8000. Every route returned 404 until that old server was stopped.
+That an old server was already on port 8000, so every route returned 404 until it was stopped.
 
 ---
 
@@ -142,9 +124,15 @@ That another app was already running on port 8000. Every route returned 404 unti
 
 > I still do not like it. Ok, lets do plain colors... this is hurting my eyes
 
+> This is what i am thinking for the design in P8. https://www.pinterest.com/pin/1123788913274357287/ CAN YOU SEE IT? REDESIGN MY PAGE WITH THESE COLORS AND LET THEM look this cool
+
+> Come on! the actual template is waaay cooler. Cant we do smth cbetter? act like a web page designer
+
+> Looks better, one final stretch. give me your best work so far, I know you can do it i BELIEVE IN YOU
+
 **What the first prompt was missing:**
 
-A theme that was easy on the eyes. The earthy rusty theme was too dark and the all-pink one was too much. Asking for a plain, light look from the start would have saved two rounds.
+A design reference. Earthy, pink and plain all missed. The Pinterest template finally gave it a target.
 
 ---
 
@@ -154,14 +142,6 @@ A theme that was easy on the eyes. The earthy rusty theme was too dark and the a
 
 > ok I ran all 3 tickets and my screenshots are in output/screenshots/ (ticket_101.png, ticket_102.png, ticket_103.png). use audit_trail.json and the db to fill in the Actual section for each ticket in desk_tickets.html right next to my Expected (which agents worked, who handed off to who, which tools). fill the Cash tab with the starting balance, every payment per ticket with what it was for and how much, and the ending balance, and make sure it matches cash_accounts. then make output/resolved_tickets.json (id, status, outcome, what each agent did, any approvals) and output/resolved_board.html, a page I can double click that shows my 3 screenshots with the ticket number above each one, using relative paths. finish harness.md so it covers tables, tools, agents, routes, dashboard and safety. at the end, double check the cash math and show me the numbers
 
-**Follow-up prompt:**
-
-> 
-
-**What the first prompt was missing:**
-
-
-
 ---
 
 ## Problem 10: Reflection
@@ -169,14 +149,6 @@ A theme that was easy on the eyes. The earthy rusty theme was too dark and the a
 **Prompt:**
 
 > let's do the reflection. go through audit_trail.json, my ticket tabs, and the Cash tab and pull the facts for each ticket: what actually happened vs my Expected plan, which agents and tools were used, and the dollar amounts. then fill in the Reflection tab in desk_tickets.html with these 5 answers: how I'd judge the agents on each ticket and why, how Actual compared to Expected for 101, 102 and 103, what would've been simpler with just one agent and tools, 3 new problems Campus Customs could have that this team could handle with the tools we built, and 3 it couldn't handle, plus what tools and agents we'd need for each. keep it specific to this app with ticket ids and dollar amounts, nothing generic, and write it casual like me, not like an essay. no separate markdown file, it all goes in the Reflection tab
-
-**Follow-up prompt:**
-
-> 
-
-**What the first prompt was missing:**
-
-
 
 ---
 
@@ -192,6 +164,4 @@ A theme that was easy on the eyes. The earthy rusty theme was too dark and the a
 
 **What the first prompt was missing:**
 
-A "don't push until I've reviewed it" step. Claude pushed to a public repo right away, before I'd gone over everything. It also didn't check that the agents actually used Portkey like P5 says. They were calling OpenAI directly with OPENAI_API_KEY. And an old PORTKEY_API_KEY in my ~/.zshrc was overriding the one in .env.
-
-
+A "wait for my review before pushing" step, and a check that the agents used Portkey. They used `OPENAI_API_KEY`, and an old key in `~/.zshrc` overrode `.env`.

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, type AgentEvent, type AgentName, type Cash, type PaymentRequest, type RunResult, type Ticket } from './api'
-import { AGENTS, AgentBadge } from './agents'
+import { AGENTS, AgentBadge, BigNumber } from './agents'
+import { HERO_ART } from './art'
 
 const money = (n: number) =>
   n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
@@ -10,6 +11,15 @@ const TYPE_LABEL: Record<string, string> = {
   rent_notice: 'Rent notice',
   price_override: 'Price override',
 }
+
+// Fill for each ticket's big number, borrowed from the agent who owns that kind of work.
+const TYPE_FILL: Record<string, string> = {
+  customer_order: AGENTS.inventory.fill,
+  rent_notice: AGENTS.facilities.fill,
+  price_override: AGENTS.accounting.fill,
+}
+
+const pad = (n: number) => String(n).padStart(2, '0')
 
 interface CashPoint {
   balance: number
@@ -161,30 +171,65 @@ export default function App() {
 
   const pendingTotal = approvals.reduce((s, a) => s + a.amount, 0)
 
+  // Slide each step, card and heading in as it scrolls into view.
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>('[data-reveal]:not(.in)')
+    if (!('IntersectionObserver' in window)) { els.forEach((el) => el.classList.add('in')); return }
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) }
+    }, { threshold: 0.04 })
+    els.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [events, tickets, approvals, selectedId])
+
+  const resolvedCount = tickets.filter((t) => t.state === 'resolved').length
+
   return (
-    <div className="desk">
-      <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden>
-            <svg viewBox="0 0 32 32"><path d="M8 22c2.2-6.5 5.4-11 8-11s5.8 4.5 8 11" /><circle cx="16" cy="11" r="2.6" /></svg>
-          </span>
-          <div>
-            <div className="eyebrow">Campus Customs</div>
-            <h1>Agent Desk</h1>
+    <div className="desk" id="top">
+      {/* ---------------- hero ---------------- */}
+      <header className="hero">
+        <div className="hero-art" style={{ backgroundImage: HERO_ART }} aria-hidden />
+        <div className="hero-tint" aria-hidden />
+        <nav className="nav">
+          <div className="logo">Campus Customs<span className="logo-dot" /></div>
+          <div className="nav-links">
+            <a href="#tickets">Tickets</a>
+            <a href="#process">Process</a>
+            <a href="#signoff">Sign-off{approvals.length > 0 && <span className="nav-badge">{approvals.length}</span>}</a>
+            <a href="#team">Team</a>
           </div>
+          <button className="ghost on-dark" onClick={reset} disabled={!!running}>Reset shop</button>
+        </nav>
+        <div className="hero-body">
+          <div>
+            <div className="hero-eyebrow">Agent Desk · Shop date {cash?.date ?? '…'}</div>
+            <h1>Let's run the shop</h1>
+            <p className="hero-lead">Five agents run the desk. They check the shop's data, pass tickets to each other, and get everything ready. Nothing goes out and no money moves until you say so.</p>
+            <div className="hero-stats">
+              <div><strong>{resolvedCount}/{tickets.length || 3}</strong><span>tickets done</span></div>
+              <div><strong>{approvals.length}</strong><span>waiting for you</span></div>
+              <div><strong>5</strong><span>agents on shift</span></div>
+            </div>
+          </div>
+          <CashCard cash={cash} history={cashHistory} pendingTotal={pendingTotal} />
         </div>
-        <CashCard cash={cash} history={cashHistory} pendingTotal={pendingTotal} />
-        <button className="ghost" onClick={reset} disabled={!!running}>Reset shop</button>
       </header>
 
       {error && <div className="alert" role="alert">{error}<button onClick={() => setError(null)}>×</button></div>}
 
-      <main className="columns">
-        {/* ---------------- tickets ---------------- */}
-        <section className="col tickets">
-          <h2 className="col-title">Tickets</h2>
-          {tickets.map((t) => (
+      {/* ---------------- tickets ---------------- */}
+      <section className="tickets-band" id="tickets">
+        <div className="section-head" data-reveal>
+          <span className="chapter">01</span>
+          <div>
+            <div className="eyebrow">First up</div>
+            <h2 className="section-title">Pick a ticket</h2>
+          </div>
+        </div>
+        <div className="ticket-row">
+          {tickets.map((t, i) => (
             <TicketCard
+              order={i}
               key={t.id}
               ticket={t}
               selected={t.id === selectedId}
@@ -194,11 +239,20 @@ export default function App() {
               onRun={() => runTicket(t)}
             />
           ))}
-          <AgentLegend />
-        </section>
+        </div>
+      </section>
 
-        {/* ---------------- live feed ---------------- */}
-        <section className="col feed">
+      <div className="section-head workspace-head" data-reveal>
+        <span className="chapter">02</span>
+        <div>
+          <div className="eyebrow">Then</div>
+          <h2 className="section-title">Watch the team work</h2>
+        </div>
+      </div>
+
+      <main className="workspace">
+        {/* ---------------- process feed ---------------- */}
+        <section className="feed" id="process">
           {selected ? (
             <>
               <div className="feed-head">
@@ -211,15 +265,15 @@ export default function App() {
               </div>
 
               {results[selected.id] && <RunBanner result={results[selected.id]} />}
+              {!!events.length && <RouteMap events={events} working={working} />}
 
               <ol className="timeline">
-                {events.map((e) => <EventItem key={`${e.run_id}-${e.step}`} event={e} />)}
+                {events.map((e, i) => <EventItem key={`${e.run_id}-${e.step}`} event={e} index={i} />)}
                 {working && (
                   <li className="event working">
-                    <AgentBadge agent={working} />
-                    <div className="bubble" style={{ borderLeftColor: AGENTS[working].color }}>
-                      <strong style={{ color: AGENTS[working].color }}>{AGENTS[working].label}</strong> is working
-                      <span className="dots"><i /><i /><i /></span>
+                    <BigNumber value={pad(events.length + 1)} fill={AGENTS[working].fill} />
+                    <div className="bubble">
+                      <h3 className="agent-name" style={{ color: AGENTS[working].color }}>{AGENTS[working].label} is working<span className="dots"><i /><i /><i /></span></h3>
                     </div>
                   </li>
                 )}
@@ -228,27 +282,28 @@ export default function App() {
               {!events.length && !running && (
                 <div className="empty">
                   {selected.state === 'open'
-                    ? 'No agents have worked this ticket yet. Press Run agents to start with Boss.'
-                    : 'No agent steps on record for this ticket.'}
+                    ? 'Nobody has touched this one yet. Hit Run agents and Boss will get it started.'
+                    : 'Nothing logged for this ticket yet.'}
                 </div>
               )}
               {!!events.length && !running && !results[selected.id] && (
-                <p className="muted small">Showing the most recent run on record ({events[0].run_id}).</p>
+                <p className="muted small run-note">This is the last run ({events[0].run_id}).</p>
               )}
             </>
           ) : (
-            <div className="empty">Pick a ticket.</div>
+            <div className="empty">Pick a ticket up top to see what happened.</div>
           )}
         </section>
 
         {/* ---------------- approvals + summary ---------------- */}
-        <section className="col side">
-          <h2 className="col-title">Needs your sign-off</h2>
+        <aside className="side" id="signoff">
+          <div className="side-chapter"><span className="chapter small-chapter">03</span><span className="eyebrow">Your turn</span></div>
+          <h2 className="col-title">Waiting on you</h2>
           <label className="approver">
-            <span>Approving as</span>
-            <input value={approver} onChange={(e) => setApprover(e.target.value)} placeholder="Your name" />
+            <span>Signing as</span>
+            <input value={approver} onChange={(e) => setApprover(e.target.value)} placeholder="Type your name" />
           </label>
-          {approvals.length === 0 && <p className="muted small">Nothing waiting. Agents can only prepare payments; they appear here for you to approve.</p>}
+          {approvals.length === 0 && <p className="muted small">All clear. When the team wants to pay for something, it shows up here for you to OK.</p>}
           {approvals.map((a) => (
             <ApprovalCard
               key={a.id}
@@ -264,8 +319,11 @@ export default function App() {
 
           <h2 className="col-title spaced">Who did what</h2>
           <AgentSummary events={events} />
-        </section>
+        </aside>
       </main>
+
+      <Footer />
+      <a className="to-top" href="#top" aria-label="Back to top">↑</a>
     </div>
   )
 }
@@ -292,7 +350,7 @@ function CashCard({ cash, history, pendingTotal }: { cash: Cash | null; history:
           {delta < 0 && <span className="drop">▼ {money(-delta)} this session</span>}
           {delta === 0 && <span className="muted">as of {cash?.date ?? '…'}</span>}
           {pendingTotal > 0 && cash && (
-            <span className="pending">{money(pendingTotal)} awaiting approval → {money(cash.balance - pendingTotal)}</span>
+            <span className="pending">{money(pendingTotal)} waiting on you → {money(cash.balance - pendingTotal)}</span>
           )}
         </div>
       </div>
@@ -306,18 +364,24 @@ function CashCard({ cash, history, pendingTotal }: { cash: Cash | null; history:
   )
 }
 
-function TicketCard({ ticket, selected, running, locked, onSelect, onRun }: {
-  ticket: Ticket; selected: boolean; running: boolean; locked: boolean; onSelect: () => void; onRun: () => void
+function TicketCard({ ticket, order, selected, running, locked, onSelect, onRun }: {
+  ticket: Ticket; order: number; selected: boolean; running: boolean; locked: boolean; onSelect: () => void; onRun: () => void
 }) {
   const resolved = ticket.state === 'resolved'
   return (
-    <article className={`ticket ${selected ? 'selected' : ''} ${resolved ? 'resolved' : ''}`} onClick={onSelect}>
+    <article
+      className={`ticket ${selected ? 'selected' : ''} ${resolved ? 'resolved' : ''}`}
+      onClick={onSelect}
+      data-reveal
+      style={{ transitionDelay: `${order * 90}ms` }}
+    >
       <div className="ticket-top">
-        <span className="ticket-id">#{ticket.id}</span>
+        <span className="eyebrow">{TYPE_LABEL[ticket.type] ?? ticket.type}</span>
         <span className={`state ${ticket.state}`}>{resolved ? '✓ Resolved' : running ? 'Working…' : 'Open'}</span>
       </div>
+      <BigNumber value={String(ticket.id)} fill={TYPE_FILL[ticket.type] ?? AGENTS.boss.fill} className="ticket-num" />
       <h3>{ticket.subject}</h3>
-      <p className="muted small">{TYPE_LABEL[ticket.type] ?? ticket.type} · {ticket.requester}</p>
+      <p className="muted small">From {ticket.requester}</p>
       {!resolved && (
         <button
           className="run"
@@ -331,15 +395,16 @@ function TicketCard({ ticket, selected, running, locked, onSelect, onRun }: {
   )
 }
 
-function EventItem({ event }: { event: AgentEvent }) {
+function EventItem({ event, index }: { event: AgentEvent; index: number }) {
   const a = AGENTS[event.agent]
   return (
-    <li className="event">
-      <AgentBadge agent={event.agent} />
-      <div className="bubble" style={{ borderLeftColor: a.color }}>
+    <li className={`event ${index % 2 ? 'flip' : ''}`} id={`step-${index + 1}`} data-reveal>
+      <BigNumber value={pad(index + 1)} fill={a.fill} />
+      <div className="bubble">
+        <div className="step-eyebrow">Step {pad(index + 1)} · {a.role}</div>
         <div className="bubble-head">
-          <strong style={{ color: a.color }}>{a.label}</strong>
-          <span className="muted small">step {event.step} · {event.tokens.toLocaleString()} tokens</span>
+          <h3 className="agent-name" style={{ color: a.color }}><AgentBadge agent={event.agent} size={30} /> {a.label}</h3>
+          <span className="muted small">{event.tokens.toLocaleString()} tokens</span>
         </div>
         <p className={event.error ? 'err' : ''}>{event.said}</p>
         {!!event.tools.length && (
@@ -348,17 +413,48 @@ function EventItem({ event }: { event: AgentEvent }) {
           </div>
         )}
         {event.next_action === 'handoff' && event.handoff_to && (
-          <div className="handoff">
-            <span>hands to</span>
-            <AgentBadge agent={event.handoff_to} size={22} />
-            <strong style={{ color: AGENTS[event.handoff_to].color }}>{AGENTS[event.handoff_to].label}</strong>
+          <div className="handoff" style={{ ['--to' as string]: AGENTS[event.handoff_to].color }}>
+            <div className="handoff-to">
+              <span>Passes to</span>
+              <span className="handoff-arrow" aria-hidden />
+              <AgentBadge agent={event.handoff_to} size={24} />
+              <strong style={{ color: AGENTS[event.handoff_to].color }}>{AGENTS[event.handoff_to].label}</strong>
+            </div>
             {event.handoff_message && <em>“{event.handoff_message}”</em>}
           </div>
         )}
-        {event.next_action === 'done' && <div className="outcome done">Ticket closed</div>}
-        {event.next_action === 'needs_human' && <div className="outcome human">Stopped: needs a person</div>}
+        {event.next_action === 'done' && <div className="outcome done">Done, ticket closed</div>}
+        {event.next_action === 'needs_human' && <div className="outcome human">Stuck, needs you to decide</div>}
       </div>
     </li>
+  )
+}
+
+function RouteMap({ events, working }: { events: AgentEvent[]; working: AgentName | null }) {
+  const stops = events.map((e) => e.agent)
+  const tokens = events.reduce((n, e) => n + e.tokens, 0)
+  return (
+    <div className="route" data-reveal>
+      <div className="route-head">
+        <span className="eyebrow">Who touched it</span>
+        <span className="muted small">{events.length} step{events.length === 1 ? '' : 's'} · {tokens.toLocaleString()} tokens</span>
+      </div>
+      <ol className="route-line">
+        {stops.map((agent, i) => (
+          <li key={i} style={{ ['--c' as string]: AGENTS[agent].color }}>
+            <a href={`#step-${i + 1}`} title={`Step ${i + 1}: ${AGENTS[agent].label}`}>
+              <AgentBadge agent={agent} size={34} />
+              <span>{pad(i + 1)}</span>
+            </a>
+          </li>
+        ))}
+        {working && (
+          <li className="route-live" style={{ ['--c' as string]: AGENTS[working].color }}>
+            <AgentBadge agent={working} size={34} /><span>now</span>
+          </li>
+        )}
+      </ol>
+    </div>
   )
 }
 
@@ -367,7 +463,7 @@ function RunBanner({ result }: { result: RunResult }) {
   return (
     <div className={`run-banner ${ok ? 'ok' : 'warn'}`}>
       <strong>{ok ? 'Resolved' : result.final_status.replace('_', ' ')}</strong>
-      <span>{result.steps} agent steps · {result.total_tokens.toLocaleString()} tokens</span>
+      <span>{result.steps} agent step{result.steps === 1 ? '' : 's'} · {result.total_tokens.toLocaleString()} tokens</span>
     </div>
   )
 }
@@ -395,7 +491,7 @@ function ApprovalCard({ req, cash, highlight, canDecide, busy, onApprove, onReje
         </button>
         <button className="ghost small" disabled={!canDecide} onClick={onReject}>Reject</button>
       </div>
-      {!canDecide && !busy && <p className="muted tiny">Enter your name above to sign off.</p>}
+      {!canDecide && !busy && <p className="muted tiny">Add your name above first.</p>}
     </article>
   )
 }
@@ -413,7 +509,7 @@ function AgentSummary({ events }: { events: AgentEvent[] }) {
     e.tools.forEach((t) => t !== 'get_ticket' && s.tools.add(t))
     s.last = e.said ?? s.last
   }
-  if (!order.length) return <p className="muted small">Run a ticket to see each agent's part.</p>
+  if (!order.length) return <p className="muted small">Run a ticket and you'll see who did what here.</p>
   return (
     <ul className="summary">
       {order.map((name) => {
@@ -434,19 +530,28 @@ function AgentSummary({ events }: { events: AgentEvent[] }) {
   )
 }
 
-function AgentLegend() {
+function Footer() {
   return (
-    <div className="legend">
-      <h2 className="col-title spaced">The team</h2>
-      {(Object.keys(AGENTS) as AgentName[]).map((n) => (
-        <div key={n} className="legend-row">
-          <AgentBadge agent={n} size={28} />
-          <div>
-            <strong style={{ color: AGENTS[n].color }}>{AGENTS[n].label}</strong>
-            <div className="muted tiny">{AGENTS[n].role}</div>
-          </div>
+    <footer className="footer">
+      <div className="wordmark" aria-hidden>Campus Customs</div>
+      <div className="footer-brand">
+        <div className="logo">Campus Customs<span className="logo-dot" /></div>
+        <p>The team does the legwork. You make the final call on anything that goes out or costs money.</p>
+      </div>
+      <div className="team" id="team">
+        <h2>Meet the team</h2>
+        <div className="team-grid">
+          {(Object.keys(AGENTS) as AgentName[]).map((n) => (
+            <div key={n} className="team-member">
+              <AgentBadge agent={n} size={30} />
+              <div>
+                <strong>{AGENTS[n].label}</strong>
+                <div className="tiny">{AGENTS[n].role}</div>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      </div>
+    </footer>
   )
 }

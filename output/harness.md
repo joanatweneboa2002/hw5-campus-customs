@@ -209,9 +209,10 @@ React + Vite + TypeScript app in `frontend/`. It calls the backend at `localhost
 | `src/App.tsx` | The page, the polling, and the run and approve actions |
 | `src/api.ts` | Typed calls to every backend route |
 | `src/agents.tsx` | Each agent's color, icon and label |
-| `src/index.css` | The plain theme: white, gray and agent-colored accents |
+| `src/index.css` | The "Process" theme: navy hero and footer, ticket cards, wide alternating steps, gold underlines |
+| `src/art.ts` | Hand-drawn SVG scenes for the hero and the giant step and ticket numbers |
 
-Each agent has its own color and icon (Boss slate/compass, Inventory amber/crate, Accounting green/coins, Facilities blue/storefront, Customer Service purple/speech bubble). Red only appears for warnings.
+Each agent has its own color, icon and an illustrated scene inside its giant step numbers (Boss navy compass, Inventory yellow stationery and tees, Accounting teal coins and receipt, Facilities blueprint floor plan, Customer Service coral speech bubbles). Dark red only appears for warnings.
 
 **Safety in the UI:** the dashboard can't move money by itself. **Approve & pay** stays disabled until someone types a name, and the backend re-checks the bill and balance before paying.
 

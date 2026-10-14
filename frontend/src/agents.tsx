@@ -1,11 +1,13 @@
 // Each agent's look: name, role, color, and a hand-drawn line icon.
 import type { AgentName } from './api'
+import { FILLS } from './art'
 
 interface AgentStyle {
   label: string
   role: string
-  color: string // icon, name, and left edge
+  color: string // name, icon and accents (dark enough to read on white)
   soft: string // badge background
+  fill: string // illustrated scene painted inside the big step numbers (see art.ts)
   Icon: () => React.JSX.Element
 }
 
@@ -60,12 +62,33 @@ const ChatIcon = () => (
   </svg>
 )
 
+// Colors from the Alecta "Process" look: navy, gold, sunny yellow, coral, teal.
 export const AGENTS: Record<AgentName, AgentStyle> = {
-  boss: { label: 'Boss', role: 'Reads & delegates', color: '#374151', soft: '#f3f4f6', Icon: CompassIcon },
-  inventory: { label: 'Inventory', role: 'Stock & sizes', color: '#b45309', soft: '#f3f4f6', Icon: CrateIcon },
-  accounting: { label: 'Accounting', role: 'Cash & prices', color: '#15803d', soft: '#f3f4f6', Icon: CoinsIcon },
-  facilities: { label: 'Facilities', role: 'Lease & space', color: '#1d4ed8', soft: '#f3f4f6', Icon: StoreIcon },
-  customer_service: { label: 'Customer Service', role: 'Replies to people', color: '#7e22ce', soft: '#f3f4f6', Icon: ChatIcon },
+  boss: {
+    label: 'Boss', role: 'Runs the desk', color: '#14163a', soft: '#ebecf5', Icon: CompassIcon,
+    fill: FILLS.boss,
+  },
+  inventory: {
+    label: 'Inventory', role: 'Knows what\'s on the shelves', color: '#a86f12', soft: '#fdf4dc', Icon: CrateIcon,
+    fill: FILLS.inventory,
+  },
+  accounting: {
+    label: 'Accounting', role: 'Watches the money', color: '#1f8274', soft: '#e1f4f1', Icon: CoinsIcon,
+    fill: FILLS.accounting,
+  },
+  facilities: {
+    label: 'Facilities', role: 'Deals with the landlord', color: '#565663', soft: '#eeeef2', Icon: StoreIcon,
+    fill: FILLS.facilities,
+  },
+  customer_service: {
+    label: 'Customer Service', role: 'Talks to customers', color: '#cf3f3f', soft: '#fde8e6', Icon: ChatIcon,
+    fill: FILLS.customer_service,
+  },
+}
+
+/** Big number like "01" painted with an agent's (or ticket's) fill. */
+export function BigNumber({ value, fill, className = '' }: { value: string; fill: string; className?: string }) {
+  return <span className={`big-num ${className}`} style={{ background: fill }} aria-hidden>{value}</span>
 }
 
 export function AgentBadge({ agent, size = 36 }: { agent: AgentName; size?: number }) {
