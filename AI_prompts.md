@@ -4,7 +4,7 @@ A record of the prompts I used with Claude Code for each Homework 5 problem.
 
 ---
 
-## Problem 1: 
+## Problem 1: Vibe coder prompts
 
 **Prompt:**
 
@@ -36,7 +36,7 @@ The problem number and title, so the prompt log could be labeled. The database w
 
 ---
 
-## Problem 3: MCP servers
+## Problem 3: Build the MCP server
 
 **Prompt:**
 
@@ -60,7 +60,7 @@ For the screenshot page: one screenshot per ticket, saved as files in the folder
 
 ---
 
-## Problem 4: Connect and test the tools
+## Problem 4: Add the MCP server to vibe coder and test each tool
 
 **Prompt:**
 
@@ -188,8 +188,10 @@ A theme that was easy on the eyes. The earthy rusty theme was too dark and the a
 
 **Follow-up prompt:**
 
-> 
+> found a couple things before I submit. P5 says the agents have to use gpt-6-luna through Portkey with my PORTKEY_API_KEY, but backend/agents.py uses OPENAI_API_KEY and doesn't go through Portkey. switch it to use PORTKEY_API_KEY with base_url https://api.portkey.ai/v1, and update .env.example, the README and harness.md so they say Portkey too. then run one quick ticket to make sure it still works, but don't touch my desk_tickets.html, audit results or the cash numbers. also fix the titles in AI_prompts.md: Problem 1 should be "Vibe coder prompts", Problem 3 "Build the MCP server", Problem 4 "Add the MCP server to vibe coder and test each tool". then commit, push to GitHub, and rebuild hw5.zip so it matches, log this as a follow up after prompt 11.
 
 **What the first prompt was missing:**
+
+A "don't push until I've reviewed it" step. Claude pushed to a public repo right away, before I'd gone over everything. It also didn't check that the agents actually used Portkey like P5 says. They were calling OpenAI directly with OPENAI_API_KEY. And an old PORTKEY_API_KEY in my ~/.zshrc was overriding the one in .env.
 
 

@@ -43,7 +43,7 @@ pip install -r requirements.txt
 cp .env.example .env        # then put your real keys in .env
 ```
 
-The agents read `OPENAI_API_KEY` from `.env` and use the model `gpt-6-luna` by default. Set `CAMPUS_MODEL` in `.env` to use a different one.
+The agents call `gpt-6-luna` through **Portkey** (`https://api.portkey.ai/v1`), using `PORTKEY_API_KEY` from `.env`. The key in `.env` wins over any `PORTKEY_API_KEY` already exported in your shell. Set `CAMPUS_MODEL` in `.env` to use a different model.
 
 ## 1. Copy the database
 

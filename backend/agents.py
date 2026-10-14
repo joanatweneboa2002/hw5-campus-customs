@@ -22,11 +22,16 @@ from backend.models import AgentName, AgentStep
 HW_DIR = Path(__file__).resolve().parent.parent
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
-load_dotenv(HW_DIR / ".env")         # HW 5/.env (copy of .env.example)
-load_dotenv(HW_DIR.parent / ".env")  # fallback: the course folder's .env
+# .env wins over anything already exported in the shell (e.g. an old key in
+# ~/.zshrc). HW 5/.env is loaded last, so it beats the course folder's .env.
+load_dotenv(HW_DIR.parent / ".env", override=True)
+load_dotenv(HW_DIR / ".env", override=True)
 os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")
 
 MODEL_NAME = os.getenv("CAMPUS_MODEL", "gpt-6-luna")
+
+# Every model call goes through the Portkey gateway with PORTKEY_API_KEY.
+PORTKEY_BASE_URL = "https://api.portkey.ai/v1"
 
 # A model call that hangs fails after this many seconds (one automatic retry)
 # instead of freezing the whole run.
@@ -70,7 +75,9 @@ def make_mcp_toolset() -> MCPToolset:
 def build_agents(shop: MCPToolset) -> dict[AgentName, Agent[None, AgentStep]]:
     model = OpenAIResponsesModel(
         MODEL_NAME, provider=OpenAIProvider(openai_client=AsyncOpenAI(
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=os.environ["PORTKEY_API_KEY"],
+            base_url=PORTKEY_BASE_URL,
+            default_headers={"x-portkey-api-key": os.environ["PORTKEY_API_KEY"]},
             timeout=REQUEST_TIMEOUT_S,
             max_retries=1,
         ))

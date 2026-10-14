@@ -134,7 +134,7 @@ The MCP server creates these in the working copy the first time it starts. The o
 
 ## Agents
 
-Five PydanticAI agents on `gpt-6-luna`, using `OPENAI_API_KEY` from the root `.env`. Code is in `backend/`, prompts are in `backend/prompts/<agent>.md`, and data types are in `backend/models.py`. Every shop fact comes from the MCP server. There's no separate tools layer.
+Five PydanticAI agents on `gpt-6-luna`, called through the Portkey gateway (`base_url` `https://api.portkey.ai/v1`) with `PORTKEY_API_KEY` from `.env`. Code is in `backend/`, prompts are in `backend/prompts/<agent>.md`, and data types are in `backend/models.py`. Every shop fact comes from the MCP server. There's no separate tools layer.
 
 | Agent | Job | MCP tools it may call |
 |---|---|---|
